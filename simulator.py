@@ -2,6 +2,8 @@
 This input parameters and generated 64x256 facies image using this simulaor
 """
 
+import os
+
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -64,25 +66,58 @@ def simulate_channel(
 
 
 
-#testing several sinuosity values
+# #testing several sinuosity values
 
-values = [1.70, 1.75, 1.80, 1.85, 1.90]
+# values = [1.70, 1.75, 1.80, 1.85, 1.90]
 
-for i, s in enumerate(values):
+# for i, s in enumerate(values):
+#     image = simulate_channel(
+#         sinuosity=s,
+#         seed=42 + i
+#     )
+
+#     plt.figure(figsize=(10, 3))
+#     plt.imshow(image, aspect="auto", origin="lower")
+#     plt.title(f"Synthetic channel — sinuosity = {s:.2f}")
+#     plt.xlabel("Horizontal position")
+#     plt.ylabel("Vertical position")
+#     plt.tight_layout()
+#     plt.savefig(
+#         f"synthetic_channel_sinuosity_{s:.2f}.png",
+#         dpi=300,
+#         bbox_inches="tight"
+#     )
+#     plt.show()
+output_dir = "output/simulator"
+os.makedirs(output_dir, exist_ok=True)
+N = 1000
+
+sinuosity_values = []
+images = []
+
+rng = np.random.default_rng(123)
+
+for i in range(N):
+
+    # Sample sinuosity from the prior
+    s = rng.uniform(1.7, 1.9)
+
+    # Different stochastic realization
+    seed = i
+
     image = simulate_channel(
         sinuosity=s,
-        seed=42 + i
+        seed=seed
     )
 
-    plt.figure(figsize=(10, 3))
-    plt.imshow(image, aspect="auto", origin="lower")
-    plt.title(f"Synthetic channel — sinuosity = {s:.2f}")
-    plt.xlabel("Horizontal position")
-    plt.ylabel("Vertical position")
-    plt.tight_layout()
-    plt.savefig(
-        f"synthetic_channel_sinuosity_{s:.2f}.png",
-        dpi=300,
-        bbox_inches="tight"
-    )
-    plt.show()
+    sinuosity_values.append(s)
+    images.append(image)
+
+sinuosity_values = np.array(sinuosity_values, dtype=np.float32)
+images = np.stack(images).astype(np.float32)
+
+print("Parameters:", sinuosity_values.shape)
+print("Images:", images.shape)
+
+np.save(os.path.join(output_dir, "sinuosity.npy"), sinuosity_values)
+np.save(os.path.join(output_dir, "channel_images.npy"), images)
